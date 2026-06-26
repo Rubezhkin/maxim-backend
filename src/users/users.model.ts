@@ -20,4 +20,10 @@ export class User {
   })
   @Column()
   password: string;
+
+  @ApiProperty({
+    description: "refresh токен пользователя",
+  })
+  @Column({ nullable: true })
+  refreshToken: string;
 }
