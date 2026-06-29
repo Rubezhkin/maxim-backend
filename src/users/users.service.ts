@@ -4,7 +4,6 @@ import { User } from "./users.model";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { UpdateRefreshDto } from "./dto/udpate-token.dto";
 
 @Injectable()
 export class UsersService {
@@ -27,15 +26,12 @@ export class UsersService {
     return user;
   }
 
-  async update(login: string, updateUserDto: Partial<UpdateUserDto>) {
-    const user = await this.findOne(login);
-    if (user) {
-      Object.assign(user, updateUserDto);
-      return this.userRepository.save(user);
-    }
+  async findOneById(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    return user;
   }
 
-  async updateToken(login: string, updateUserDto: Partial<UpdateRefreshDto>) {
+  async update(login: string, updateUserDto: Partial<UpdateUserDto>) {
     const user = await this.findOne(login);
     if (user) {
       Object.assign(user, updateUserDto);

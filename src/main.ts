@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder } from "node_modules/@nestjs/swagger/dist/document-builder";
 import { SwaggerModule } from "node_modules/@nestjs/swagger/dist/swagger-module";
+import cookieParser from "cookie-parser";
 
 async function start() {
   const PORT = process.env.PORT || 3000;
@@ -13,7 +14,7 @@ async function start() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
-
+  app.use(cookieParser());
   await app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });

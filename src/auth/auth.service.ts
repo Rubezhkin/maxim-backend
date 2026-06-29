@@ -4,29 +4,23 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt/dist/jwt.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import * as bcrypt from "bcryptjs";
 import { UsersService } from "src/users/users.service";
+import { TokenService } from "src/token/token.service";
 import { User } from "src/users/users.model";
-import { UpdateRefreshDto } from "src/users/dto/udpate-token.dto";
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
-    private jwtService: JwtService,
+    private tokenService: TokenService,
   ) {}
   async login(userDTO: CreateUserDto) {
     const user = await this.validateUser(userDTO);
-    const tokens = await this.generateToken(user);
-
-    const hashedRefresh = await bcrypt.hash(tokens.refresh, 5);
-    await this.userService.updateToken(user.login, {
-      refreshToken: hashedRefresh,
-    });
-
-    return tokens;
+    const tokens = this.tokenService.generateTokens(user);
+    this.tokenService.saveToken(user.id, tokens.refresh);
+    return { tokens, user };
   }
 
   async registration(userDTO: CreateUserDto) {
@@ -39,66 +33,26 @@ export class AuthService {
       ...userDTO,
       password: hashedPassword,
     });
-    const tokens = await this.generateToken(user);
-    const hashedRefresh = await bcrypt.hash(tokens.refresh, 5);
-    await this.userService.updateToken(user.login, {
-      refreshToken: hashedRefresh,
-    });
-    return tokens;
+    const tokens = this.tokenService.generateTokens(user);
+    this.tokenService.saveToken(user.id, tokens.refresh);
+    return { tokens, user };
   }
 
-  async refreshToken(refreshToken: UpdateRefreshDto) {
+  async refreshToken(refreshToken: string) {
     if (!refreshToken) {
-      throw new UnauthorizedException({
-        message: "Invalid refresh token",
-      });
+      throw new HttpException("Токен недействителен", HttpStatus.BAD_REQUEST);
     }
-
-    const payload = this.jwtService.verify<{ id: number; login: string }>(
-      refreshToken.refreshToken,
-      { secret: process.env.JWT_SECRET_REFRESH },
-    );
-
-    const user = await this.userService.findOne(payload.login);
-    if (!user || !user.refreshToken) {
-      throw new UnauthorizedException({
-        message: "Invalid refresh token",
-      });
+    const userData = this.tokenService.validateRefreshToken(refreshToken);
+    const tokenFromDB = await this.tokenService.getToken(refreshToken);
+    if (!userData || !tokenFromDB) {
+      throw new HttpException("Токен недействителен", HttpStatus.BAD_REQUEST);
     }
-
-    const isRefreshTokenValid = await bcrypt.compare(
-      refreshToken.refreshToken,
-      user.refreshToken,
-    );
-    if (!isRefreshTokenValid) {
-      throw new UnauthorizedException({
-        message: "Invalid refresh token",
-      });
+    const user = await this.userService.findOneById(userData.id);
+    if (user) {
+      const tokens = this.tokenService.generateTokens(user);
+      this.tokenService.saveToken(user.id, tokens.refresh);
+      return tokens;
     }
-
-    const tokens = await this.generateToken(user);
-    const hashedRefresh = await bcrypt.hash(tokens.refresh, 5);
-    await this.userService.updateToken(user.login, {
-      refreshToken: hashedRefresh,
-    });
-
-    return tokens;
-  }
-
-  private async generateToken(user: User) {
-    const payload = { id: user.id, login: user.login };
-    const access = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET_ACCESS,
-      expiresIn: "15m",
-    });
-    const refresh = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET_REFRESH,
-      expiresIn: "30d",
-    });
-    return {
-      access,
-      refresh,
-    };
   }
 
   private async validateUser(userDTO: CreateUserDto) {
@@ -118,5 +72,9 @@ export class AuthService {
     throw new UnauthorizedException({
       message: "Логин или пароль неправильный",
     });
+  }
+
+  async logout(refreshToken) {
+    return this.tokenService.removeToken(refreshToken);
   }
 }

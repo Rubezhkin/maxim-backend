@@ -1,20 +1,40 @@
-import { Controller, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Controller, Post, Req, Res, Body } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { AuthService } from "./auth.service";
-import { Body } from "@nestjs/common";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { User } from "src/users/users.model";
-import { UpdateRefreshDto } from "src/users/dto/udpate-token.dto";
+import type { Response, Request } from "express";
 
 @ApiTags("Авторизация")
 @Controller("auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @ApiOperation({ summary: "Авторизоваться" })
+  @ApiResponse({
+    status: 201,
+    description: "Пользователь успешно авторизован",
+    type: User,
+  })
   @Post("/login")
-  login(@Body() userDTO: CreateUserDto) {
-    return this.authService.login(userDTO);
+  async login(
+    @Body() userDTO: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await this.authService.logout(refreshToken);
+    }
+    const data = await this.authService.login(userDTO);
+    res.cookie("refreshToken", data.tokens.refresh, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    return data;
   }
 
   @ApiOperation({ summary: "Создать нового пользователя" })
@@ -24,12 +44,58 @@ export class AuthController {
     type: User,
   })
   @Post("/registration")
-  registration(@Body() userDTO: CreateUserDto) {
-    return this.authService.registration(userDTO);
+  async registration(
+    @Body() userDTO: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await this.authService.logout(refreshToken);
+    }
+    const data = await this.authService.registration(userDTO);
+    res.cookie("refreshToken", data.tokens.refresh, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    return data;
   }
 
+  @ApiOperation({ summary: "Выход пользователя" })
+  @Post("/logout")
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return { message: "No refresh token" };
+    }
+    await this.authService.logout(refreshToken);
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    return { message: "logout succesful!" };
+  }
+
+  @ApiOperation({ summary: "Обновить токен" })
   @Post("/refresh")
-  refresh(@Body() refreshTokenDTO: UpdateRefreshDto) {
-    return this.authService.refreshToken(refreshTokenDTO);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies.refreshToken;
+    const token = await this.authService.refreshToken(refreshToken);
+    if (token) {
+      res.cookie("refreshToken", token.refresh, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+      });
+      return token;
+    }
   }
 }
