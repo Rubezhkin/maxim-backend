@@ -27,14 +27,13 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
     const data = await this.authService.login(userDTO);
-    res.cookie("refreshToken", data.tokens.refresh, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
+    res.cookie("refreshToken", data.refresh, {
+      httpOnly: process.env.HTTP_ONLY === "true",
+      secure: process.env.SECURE === "true",
+      sameSite: (process.env.SAME_SITE as "lax" | "strict" | "none") || "lax",
     });
 
-    return data;
+    return { id: data.id, login: data.login, access: data.access };
   }
 
   @ApiOperation({ summary: "Создать нового пользователя" })
@@ -54,14 +53,13 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
     const data = await this.authService.registration(userDTO);
-    res.cookie("refreshToken", data.tokens.refresh, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
+    res.cookie("refreshToken", data.refresh, {
+      httpOnly: process.env.HTTP_ONLY === "true",
+      secure: process.env.SECURE === "true",
+      sameSite: (process.env.SAME_SITE as "lax" | "strict" | "none") || "lax",
     });
 
-    return data;
+    return { id: data.id, login: data.login, access: data.access };
   }
 
   @ApiOperation({ summary: "Выход пользователя" })
@@ -69,15 +67,15 @@ export class AuthController {
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
-      return { message: "No refresh token" };
+      return { message: "Нет refresh токена" };
     }
     await this.authService.logout(refreshToken);
     res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      httpOnly: process.env.HTTP_ONLY === "true",
+      secure: process.env.SECURE === "true",
+      sameSite: (process.env.SAME_SITE as "lax" | "strict" | "none") || "lax",
     });
-    return { message: "logout succesful!" };
+    return { message: "Выход прошел успешно!" };
   }
 
   @ApiOperation({ summary: "Обновить токен" })
@@ -89,13 +87,13 @@ export class AuthController {
     const refreshToken = req.cookies.refreshToken;
     const token = await this.authService.refreshToken(refreshToken);
     if (token) {
+      await this.authService.logout(refreshToken);
       res.cookie("refreshToken", token.refresh, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: process.env.HTTP_ONLY === "true",
+        secure: process.env.SECURE === "true",
+        sameSite: (process.env.SAME_SITE as "lax" | "strict" | "none") || "lax",
       });
-      return token;
+      return { access: token.access };
     }
   }
 }

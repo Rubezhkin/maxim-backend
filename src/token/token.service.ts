@@ -4,6 +4,7 @@ import { User } from "src/users/users.model";
 import { Token } from "./token.model";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { TokensDto } from "src/auth/dto/tokens.dto";
 @Injectable()
 export class TokenService {
   constructor(
@@ -22,10 +23,7 @@ export class TokenService {
       secret: process.env.JWT_SECRET_REFRESH,
       expiresIn: "30d",
     });
-    return {
-      access,
-      refresh,
-    };
+    return new TokensDto(access, refresh);
   }
 
   async saveToken(userId: number, refresh: string) {

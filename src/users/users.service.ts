@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./users.model";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { GetUserDto } from "./dto/get-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -18,12 +19,22 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.userRepository.find();
+    const users = await this.userRepository.find();
+    return users.map((user) => new GetUserDto(user.id, user.login));
   }
 
   async findOne(login: string) {
     const user = await this.userRepository.findOneBy({ login });
     return user;
+  }
+
+  async findOneRequest(login: string) {
+    const user = await this.userRepository.findOneBy({ login });
+    if (user) {
+      return new GetUserDto(user.id, user.login);
+    } else {
+      throw new HttpException("Пользователь не найден", HttpStatus.NOT_FOUND);
+    }
   }
 
   async findOneById(id: number) {

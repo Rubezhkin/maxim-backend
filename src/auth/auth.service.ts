@@ -9,6 +9,8 @@ import * as bcrypt from "bcryptjs";
 import { UsersService } from "src/users/users.service";
 import { TokenService } from "src/token/token.service";
 import { User } from "src/users/users.model";
+import { AuthUserDto } from "./dto/auth-user.dto";
+import { TokensDto } from "./dto/tokens.dto";
 
 @Injectable()
 export class AuthService {
@@ -18,9 +20,8 @@ export class AuthService {
   ) {}
   async login(userDTO: CreateUserDto) {
     const user = await this.validateUser(userDTO);
-    const tokens = this.tokenService.generateTokens(user);
-    this.tokenService.saveToken(user.id, tokens.refresh);
-    return { tokens, user };
+    const tokens = await this.saveToken(user);
+    return this.sendAnswer(user, tokens);
   }
 
   async registration(userDTO: CreateUserDto) {
@@ -28,14 +29,13 @@ export class AuthService {
     if (candidate) {
       throw new HttpException("User already exists", HttpStatus.BAD_REQUEST);
     }
-    const hashedPassword = await bcrypt.hash(userDTO.password, 5);
+    const hashedPassword = await bcrypt.hash(userDTO.password, 10);
     const user = await this.userService.create({
       ...userDTO,
       password: hashedPassword,
     });
-    const tokens = this.tokenService.generateTokens(user);
-    this.tokenService.saveToken(user.id, tokens.refresh);
-    return { tokens, user };
+    const tokens = await this.saveToken(user);
+    return this.sendAnswer(user, tokens);
   }
 
   async refreshToken(refreshToken: string) {
@@ -49,8 +49,7 @@ export class AuthService {
     }
     const user = await this.userService.findOneById(userData.id);
     if (user) {
-      const tokens = this.tokenService.generateTokens(user);
-      this.tokenService.saveToken(user.id, tokens.refresh);
+      const tokens = this.saveToken(user);
       return tokens;
     }
   }
@@ -74,7 +73,23 @@ export class AuthService {
     });
   }
 
-  async logout(refreshToken) {
-    return this.tokenService.removeToken(refreshToken);
+  async logout(refreshToken: string) {
+    return await this.tokenService.removeToken(refreshToken);
+  }
+
+  private async saveToken(user: User) {
+    const tokens = this.tokenService.generateTokens(user);
+    await this.tokenService.saveToken(user.id, tokens.refresh);
+    return tokens;
+  }
+
+  private sendAnswer(user: User, tokens: TokensDto) {
+    const result = new AuthUserDto(
+      user.id,
+      user.login,
+      tokens.access,
+      tokens.refresh,
+    );
+    return result;
   }
 }

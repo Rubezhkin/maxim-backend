@@ -12,11 +12,11 @@ export class Token {
     example: 1,
     description: "Уникальный идентификатор пользователя",
   })
-  @ForeignKey(() => User)
+  @ForeignKey(() => User, { onDelete: "CASCADE" })
   @Column()
   user: number;
   @ApiProperty({
-    description: "Хэш рефреш токена",
+    description: "Хэш refresh токена",
   })
   @Column({ nullable: false })
   refresh: string;

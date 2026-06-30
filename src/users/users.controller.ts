@@ -1,8 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Put } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+} from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { User } from "./users.model";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 
 @ApiTags("Пользователи")
 @Controller("users")
@@ -15,6 +24,7 @@ export class UsersController {
     description: "Список пользователей успешно получен",
     type: [User],
   })
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -26,9 +36,10 @@ export class UsersController {
     description: "Пользователь успешно получен",
     type: User,
   })
+  @UseGuards(JwtAuthGuard)
   @Get(":login")
   findOne(@Param("login") login: string) {
-    return this.usersService.findOne(login);
+    return this.usersService.findOneRequest(login);
   }
 
   @ApiOperation({ summary: "Обновить информацию о пользователе" })
@@ -37,6 +48,7 @@ export class UsersController {
     description: "Информация о пользователе успешно обновлена",
     type: User,
   })
+  @UseGuards(JwtAuthGuard)
   @Put(":login")
   update(@Param("login") login: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(login, updateUserDto);
@@ -47,6 +59,7 @@ export class UsersController {
     status: 200,
     description: "Пользователь успешно удален",
   })
+  @UseGuards(JwtAuthGuard)
   @Delete(":login")
   remove(@Param("login") login: string) {
     return this.usersService.remove(login);
