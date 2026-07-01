@@ -11,6 +11,7 @@ import { TokenService } from "src/token/token.service";
 import { User } from "src/users/users.model";
 import { AuthUserDto } from "./dto/auth-user.dto";
 import { TokensDto } from "./dto/tokens.dto";
+import { UpdatePasswordDto } from "src/users/dto/update-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,7 @@ export class AuthService {
   }
 
   async registration(userDTO: CreateUserDto) {
-    const candidate = await this.userService.findOne(userDTO.login);
+    const candidate = await this.userService.findOneByLogin(userDTO.login);
     if (candidate) {
       throw new HttpException("User already exists", HttpStatus.BAD_REQUEST);
     }
@@ -47,7 +48,7 @@ export class AuthService {
     if (!userData || !tokenFromDB) {
       throw new HttpException("Токен недействителен", HttpStatus.BAD_REQUEST);
     }
-    const user = await this.userService.findOneById(userData.id);
+    const user = await this.userService.findOne(userData.id);
     if (user) {
       const tokens = this.saveToken(user);
       return tokens;
@@ -55,7 +56,7 @@ export class AuthService {
   }
 
   private async validateUser(userDTO: CreateUserDto) {
-    const user = await this.userService.findOne(userDTO.login);
+    const user = await this.userService.findOneByLogin(userDTO.login);
     if (!user) {
       throw new UnauthorizedException({
         message: "Логин или пароль неправильный",
@@ -75,6 +76,11 @@ export class AuthService {
 
   async logout(refreshToken: string) {
     return await this.tokenService.removeToken(refreshToken);
+  }
+
+  async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto) {
+    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
+    await this.userService.updatePassword(id, hashedPassword);
   }
 
   private async saveToken(user: User) {
