@@ -28,7 +28,16 @@ export class UsersService {
     return user;
   }
 
-  async findOneRequest(login: string) {
+  async findOneRequest(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (user) {
+      return new GetUserDto(user.id, user.login);
+    } else {
+      throw new HttpException("Пользователь не найден", HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async findOneRequestByLogin(login: string) {
     const user = await this.userRepository.findOneBy({ login });
     if (user) {
       return new GetUserDto(user.id, user.login);

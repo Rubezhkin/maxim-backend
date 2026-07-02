@@ -39,7 +39,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get(":login")
   findOne(@Param("login") login: string) {
-    return this.usersService.findOneRequest(login);
+    return this.usersService.findOneRequestByLogin(login);
   }
 
   @ApiOperation({ summary: "Обновить информацию о пользователе" })
