@@ -79,6 +79,20 @@ export class AuthService {
   }
 
   async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto) {
+    const user = await this.userService.findOne(id);
+    if (!user) {
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+    }
+    const userDto = new CreateUserDto(
+      user.login,
+      updatePasswordDto.oldPassword,
+    );
+    const validatedUser = await this.validateUser(userDto);
+    if (!validatedUser) {
+      throw new UnauthorizedException({
+        message: "Старый пароль неправильный",
+      });
+    }
     const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
     await this.userService.updatePassword(id, hashedPassword);
   }

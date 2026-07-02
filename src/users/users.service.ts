@@ -14,13 +14,13 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = await this.userRepository.create(createUserDto);
-    return await this.userRepository.save(user);
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
   }
 
   async findAll() {
     const users = await this.userRepository.find();
-    return await users.map((user) => new GetUserDto(user.id, user.login));
+    return users.map((user) => new GetUserDto(user.id, user.login));
   }
 
   async findOne(id: number) {
@@ -48,7 +48,7 @@ export class UsersService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
     Object.assign(user, updateUserDto);
-    return await this.userRepository.save(user);
+    return this.userRepository.save(user);
   }
 
   async updatePassword(id: number, hashedPassword: string) {
@@ -57,7 +57,7 @@ export class UsersService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
     user.password = hashedPassword;
-    return await this.userRepository.save(user);
+    return this.userRepository.save(user);
   }
 
   async remove(id: number) {
