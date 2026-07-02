@@ -3,10 +3,13 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Put,
+  Req,
   UseGuards,
+  BadRequestException,
+  Query,
 } from "@nestjs/common";
+import type { Request } from "express";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
@@ -18,6 +21,33 @@ import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiOperation({ summary: "Получить своего пользователя" })
+  @ApiResponse({
+    status: 200,
+    description: "Пользователь успешно получен",
+    type: User,
+  })
+  @UseGuards(JwtAuthGuard)
+  @Get("me")
+  findMe(@Req() req: Request) {
+    const id = (req as Request & { user?: { id?: number } }).user?.id;
+    if (!id) throw new BadRequestException("User not found on request");
+    return this.usersService.findOneRequest(id);
+  }
+
+  @ApiOperation({ summary: "Получить пользователя по логину" })
+  @ApiResponse({
+    status: 200,
+    description: "Пользователь успешно получен",
+    type: User,
+  })
+  @UseGuards(JwtAuthGuard)
+
+  @Get("id")
+  findOne(@Query("id") id: number) {
+    return this.usersService.findOneRequest(id);
+  }
+
   @ApiOperation({ summary: "Получить всех пользователей" })
   @ApiResponse({
     status: 200,
@@ -28,18 +58,7 @@ export class UsersController {
   @Get()
   findAll() {
     return this.usersService.findAll();
-  }
 
-  @ApiOperation({ summary: "Получить пользователя по логину" })
-  @ApiResponse({
-    status: 200,
-    description: "Пользователь успешно получен",
-    type: User,
-  })
-  @UseGuards(JwtAuthGuard)
-  @Get(":login")
-  findOne(@Param("login") login: string) {
-    return this.usersService.findOneRequestByLogin(login);
   }
 
   @ApiOperation({ summary: "Обновить информацию о пользователе" })
@@ -49,9 +68,11 @@ export class UsersController {
     type: User,
   })
   @UseGuards(JwtAuthGuard)
-  @Put(":login")
-  update(@Param("login") login: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(login, updateUserDto);
+  @Put()
+  update(@Req() req: Request, @Body() updateUserDto: UpdateUserDto) {
+    const id = (req as Request & { user?: { id?: number } }).user?.id;
+    if (!id) throw new BadRequestException("User not found on request");
+    return this.usersService.update(id, updateUserDto);
   }
 
   @ApiOperation({ summary: "Удалить пользователя" })
@@ -60,8 +81,10 @@ export class UsersController {
     description: "Пользователь успешно удален",
   })
   @UseGuards(JwtAuthGuard)
-  @Delete(":login")
-  remove(@Param("login") login: string) {
-    return this.usersService.remove(login);
+  @Delete()
+  remove(@Req() req: Request) {
+    const id = (req as Request & { user?: { id?: number } }).user?.id;
+    if (!id) throw new BadRequestException("User not found on request");
+    return this.usersService.remove(id);
   }
 }
