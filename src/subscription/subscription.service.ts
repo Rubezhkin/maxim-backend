@@ -43,7 +43,7 @@ export class SubscriptionService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const author = await this.userService.findOneById(authorId);
+    const author = await this.userService.findOne(authorId);
     if (!author) {
       throw new HttpException("Автор не найден", HttpStatus.NOT_FOUND);
     }
@@ -77,7 +77,7 @@ export class SubscriptionService {
     const authors = (
       await Promise.all(
         subscriptions.map((subscription) =>
-          this.userService.findOneById(subscription.author),
+          this.userService.findOneRequest(subscription.author),
         ),
       )
     ).filter((author): author is User => author !== null);

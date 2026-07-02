@@ -42,7 +42,6 @@ export class UsersController {
     type: User,
   })
   @UseGuards(JwtAuthGuard)
-
   @Get("id")
   findOne(@Query("id") id: number) {
     return this.usersService.findOneRequest(id);
@@ -58,7 +57,6 @@ export class UsersController {
   @Get()
   findAll() {
     return this.usersService.findAll();
-
   }
 
   @ApiOperation({ summary: "Обновить информацию о пользователе" })

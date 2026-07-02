@@ -37,20 +37,6 @@ export class UsersService {
     }
   }
 
-  async findOneRequestByLogin(login: string) {
-    const user = await this.userRepository.findOneBy({ login });
-    return user;
-  }
-
-  async findOneRequest(id: number) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (user) {
-      return new GetUserDto(user.id, user.login);
-    } else {
-      throw new HttpException("Пользователь не найден", HttpStatus.NOT_FOUND);
-    }
-  }
-
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
     if (!user) {
