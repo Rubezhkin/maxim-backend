@@ -4,6 +4,7 @@ import { UsersModule } from "./users/users.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { TokenModule } from "./token/token.module";
+import { SubscriptionModule } from "./subscription/subscription.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TokenModule } from "./token/token.module";
     UsersModule,
     AuthModule,
     TokenModule,
+    SubscriptionModule,
   ],
 })
 export class AppModule {}

@@ -28,11 +28,6 @@ export class UsersService {
     return user;
   }
 
-  async findOneByLogin(login: string) {
-    const user = await this.userRepository.findOneBy({ login });
-    return user;
-  }
-
   async findOneRequest(id: number) {
     const user = await this.userRepository.findOneBy({ id });
     if (user) {
