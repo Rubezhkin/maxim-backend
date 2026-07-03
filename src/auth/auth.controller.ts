@@ -1,9 +1,20 @@
-import { Controller, Post, Req, Res, Body } from "@nestjs/common";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  Body,
+  BadRequestException,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { AuthService } from "./auth.service";
 import { User } from "src/users/users.model";
 import type { Response, Request } from "express";
+import { UpdatePasswordDto } from "src/users/dto/update-password.dto";
+import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @ApiTags("Авторизация")
 @Controller("auth")
@@ -95,5 +106,18 @@ export class AuthController {
       });
       return { access: token.access };
     }
+  }
+
+  @ApiOperation({ summary: "Обновить пароль" })
+  @UseGuards(JwtAuthGuard)
+  @Post("/update-password")
+  async updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Req() req: Request,
+  ) {
+    const id = (req as Request & { user?: { id?: number } }).user?.id;
+    if (!id) throw new BadRequestException("User not found on request");
+    await this.authService.updatePassword(id, updatePasswordDto);
+    return { message: "Пароль успешно обновлен" };
   }
 }

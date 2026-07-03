@@ -3,8 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./users.model";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
 import { GetUserDto } from "./dto/get-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -14,7 +14,8 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = this.userRepository.create(createUserDto);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    const user = await this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
   }
 
@@ -23,13 +24,18 @@ export class UsersService {
     return users.map((user) => new GetUserDto(user.id, user.login));
   }
 
-  async findOne(login: string) {
+  async findOne(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    return user;
+  }
+
+  async findOneByLogin(login: string) {
     const user = await this.userRepository.findOneBy({ login });
     return user;
   }
 
-  async findOneRequest(login: string) {
-    const user = await this.userRepository.findOneBy({ login });
+  async findOneRequest(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
     if (user) {
       return new GetUserDto(user.id, user.login);
     } else {
@@ -37,21 +43,26 @@ export class UsersService {
     }
   }
 
-  async findOneById(id: number) {
-    const user = await this.userRepository.findOneBy({ id });
-    return user;
-  }
-
-  async update(login: string, updateUserDto: Partial<UpdateUserDto>) {
-    const user = await this.findOne(login);
-    if (user) {
-      Object.assign(user, updateUserDto);
-      return this.userRepository.save(user);
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
+    Object.assign(user, updateUserDto);
+    return this.userRepository.save(user);
   }
 
-  async remove(login: string) {
-    const user = await this.findOne(login);
+  async updatePassword(id: number, hashedPassword: string) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+    }
+    user.password = hashedPassword;
+    return this.userRepository.save(user);
+  }
+
+  async remove(id: number) {
+    const user = await this.findOne(id);
     if (user) {
       await this.userRepository.remove(user);
     }
