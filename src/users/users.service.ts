@@ -14,6 +14,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const user = await this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
   }
@@ -25,6 +26,11 @@ export class UsersService {
 
   async findOne(id: number) {
     const user = await this.userRepository.findOneBy({ id });
+    return user;
+  }
+
+  async findOneByLogin(login: string) {
+    const user = await this.userRepository.findOneBy({ login });
     return user;
   }
 

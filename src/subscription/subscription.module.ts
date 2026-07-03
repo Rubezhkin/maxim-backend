@@ -10,5 +10,6 @@ import { TokenModule } from "src/token/token.module";
   imports: [TypeOrmModule.forFeature([Subscription]), UsersModule, TokenModule],
   providers: [SubscriptionService],
   controllers: [SubscriptionController],
+  exports: [SubscriptionService],
 })
 export class SubscriptionModule {}
