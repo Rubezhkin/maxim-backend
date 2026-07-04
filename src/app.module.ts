@@ -6,9 +6,15 @@ import { AuthModule } from "./auth/auth.module";
 import { TokenModule } from "./token/token.module";
 import { SubscriptionModule } from "./subscription/subscription.module";
 import { PostsModule } from "./posts/posts.module";
+import { join } from "path";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { FilesModule } from "./files/files.module";
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "static"),
+    }),
     ConfigModule.forRoot({
       envFilePath: `.${process.env.NODE_ENV}.env`,
     }),
@@ -27,6 +33,7 @@ import { PostsModule } from "./posts/posts.module";
     TokenModule,
     SubscriptionModule,
     PostsModule,
+    FilesModule,
   ],
 })
 export class AppModule {}

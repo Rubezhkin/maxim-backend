@@ -8,8 +8,11 @@ import {
   Put,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { PostsService } from "./posts.service";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
@@ -27,10 +30,15 @@ export class PostsController {
   })
   @Post()
   @UseGuards(JwtAuthGuard)
-  createPost(@Req() req: Request, @Body() postDto: CreatePostDto) {
+  @UseInterceptors(FileInterceptor("image"))
+  createPost(
+    @Req() req: Request,
+    @Body() postDto: CreatePostDto,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
-    return this.postsService.createPost(id, postDto);
+    return this.postsService.createPost(id, postDto, image);
   }
 
   @ApiOperation({ summary: "Обновить пост" })

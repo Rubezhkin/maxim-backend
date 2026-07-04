@@ -5,27 +5,38 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import { SubscriptionService } from "src/subscription/subscription.service";
 import { UpdatePostDto } from "./dto/update-post.dto";
+import { FilesService } from "src/files/files.service";
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post) private readonly postRepository: Repository<Post>,
     private readonly subscriptionService: SubscriptionService,
+    private readonly fileService: FilesService,
   ) {}
 
-  async createPost(authorId: number, postDto: CreatePostDto) {
+  async createPost(
+    authorId: number,
+    postDto: CreatePostDto,
+    image: Express.Multer.File,
+  ) {
     const post = this.postRepository.create({
       ...postDto,
       authorId,
       createdAt: new Date(),
     });
-    return this.postRepository.save(post);
+    const savedPost = await this.postRepository.save(post);
+    if (image) {
+      await this.fileService.createFile(image, savedPost);
+    }
+    return savedPost;
   }
 
   async getPostsByAuthor(authorId: number) {
     return this.postRepository.find({
       where: { authorId },
       order: { createdAt: "DESC" },
+      relations: { mediaFiles: true },
     });
   }
 
@@ -36,12 +47,14 @@ export class PostsService {
     return this.postRepository.find({
       where: { authorId: In(authorIds) },
       order: { createdAt: "DESC" },
+      relations: { mediaFiles: true },
     });
   }
 
   async getPostById(postId: number) {
     const post = await this.postRepository.findOne({
       where: { id: postId },
+      relations: { mediaFiles: true },
     });
     if (!post) {
       throw new BadRequestException("Post not found");
