@@ -36,7 +36,7 @@ export class PostsService {
     return this.postRepository.find({
       where: { authorId },
       order: { createdAt: "DESC" },
-      relations: { mediaFiles: true },
+      relations: { mediaFiles: true, comments: true },
     });
   }
 
@@ -47,14 +47,14 @@ export class PostsService {
     return this.postRepository.find({
       where: { authorId: In(authorIds) },
       order: { createdAt: "DESC" },
-      relations: { mediaFiles: true },
+      relations: { mediaFiles: true, comments: true },
     });
   }
 
   async getPostById(postId: number) {
     const post = await this.postRepository.findOne({
       where: { id: postId },
-      relations: { mediaFiles: true },
+      relations: { mediaFiles: true, comments: true },
     });
     if (!post) {
       throw new BadRequestException("Post not found");

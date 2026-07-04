@@ -18,5 +18,6 @@ import { FilesModule } from "src/files/files.module";
   ],
   providers: [PostsService],
   controllers: [PostsController],
+  exports: [PostsService],
 })
 export class PostsModule {}

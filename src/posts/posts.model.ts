@@ -1,4 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { CommentController } from "src/comment/comment.controller";
+import { Comment } from "src/comment/comment.model";
 import { MediaFile } from "src/files/files.model";
 import { User } from "src/users/users.model";
 import {
@@ -46,4 +48,7 @@ export class Post {
     cascade: true,
   })
   mediaFiles: MediaFile[];
+
+  @OneToMany(() => Comment, (comment) => comment.post, { cascade: true })
+  comments: CommentController[];
 }
