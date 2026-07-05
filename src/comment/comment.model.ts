@@ -1,13 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Post } from "src/posts/posts.model";
 import { User } from "src/users/users.model";
-import {
-  Column,
-  Entity,
-  ForeignKey,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from "typeorm";
+import { Column, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Comment {
@@ -30,8 +24,9 @@ export class Comment {
     description:
       "Уникальный идентификатор поста, к которому относится комментарий",
   })
-  @ManyToOne(() => Post, (post) => post.comments, { onDelete: "CASCADE" })
-  post: Post;
+  @ForeignKey(() => Post, { onDelete: "CASCADE" })
+  @Column()
+  postId: number;
 
   @ApiProperty({
     example: 1,

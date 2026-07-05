@@ -97,4 +97,14 @@ export class SubscriptionService {
     ).filter((subscriber): subscriber is User => subscriber !== null);
     return subscribers;
   }
+
+  async getIsSubscribed(authorId: number, id: number) {
+    const existingSubscription = await this.subscriptionRepository.findOne({
+      where: { author: authorId, subscriber: id },
+    });
+    if (!existingSubscription) {
+      return false;
+    }
+    return true;
+  }
 }

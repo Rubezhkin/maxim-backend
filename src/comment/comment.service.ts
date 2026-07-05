@@ -12,7 +12,9 @@ export class CommentService {
     private readonly commentRepository: Repository<Comment>,
     private readonly postService: PostsService,
   ) {}
-
+  async getComment(commentId: number) {
+    return this.commentRepository.find({ where: { id: commentId } });
+  }
   async createComment(
     id: number,
     postId: number,
@@ -22,7 +24,7 @@ export class CommentService {
     const comment = this.commentRepository.create({
       ...commentDto,
       authorId: id,
-      post,
+      postId,
       createdAt: new Date(),
     });
     return this.commentRepository.save(comment);

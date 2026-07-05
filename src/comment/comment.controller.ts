@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Post,
   Query,
   Req,
@@ -24,7 +25,7 @@ export class CommentController {
   })
   @Post()
   @UseGuards(JwtAuthGuard)
-  createPost(
+  createComment(
     @Req() req: Request,
     @Body() commentDto: CreateCommentDto,
     @Query("id") postId: number,
@@ -41,9 +42,20 @@ export class CommentController {
   })
   @Delete()
   @UseGuards(JwtAuthGuard)
-  deletePost(@Query("id") postId: number, @Req() req: Request) {
+  deleteComment(@Query("id") commentId: number, @Req() req: Request) {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
-    return this.commentService.deleteComment(id, postId);
+    return this.commentService.deleteComment(id, commentId);
+  }
+
+  @ApiOperation({ summary: "Получить комментарии от поста" })
+  @ApiResponse({
+    status: 200,
+    description: "Получены комментарии",
+  })
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getComments(@Query("id") postId: number) {
+    return this.commentService.getComment(postId);
   }
 }

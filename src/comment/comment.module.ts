@@ -10,5 +10,6 @@ import { TokenModule } from "src/token/token.module";
   providers: [CommentService],
   controllers: [CommentController],
   imports: [TypeOrmModule.forFeature([Comment]), PostsModule, TokenModule],
+  exports: [CommentService],
 })
 export class CommentModule {}
