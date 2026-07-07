@@ -6,9 +6,18 @@ import { AuthModule } from "./auth/auth.module";
 import { TokenModule } from "./token/token.module";
 import { SubscriptionModule } from "./subscription/subscription.module";
 import { PostsModule } from "./posts/posts.module";
+import { join } from "path";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { FilesModule } from "./files/files.module";
+import { CommentModule } from "./comment/comment.module";
+import { LikePostModule } from "./like-post/like-post.module";
+import { LikeCommentModule } from "./like-comment/like-comment.module";
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "static"),
+    }),
     ConfigModule.forRoot({
       envFilePath: `.${process.env.NODE_ENV}.env`,
     }),
@@ -27,6 +36,10 @@ import { PostsModule } from "./posts/posts.module";
     TokenModule,
     SubscriptionModule,
     PostsModule,
+    FilesModule,
+    CommentModule,
+    LikePostModule,
+    LikeCommentModule,
   ],
 })
 export class AppModule {}

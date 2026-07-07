@@ -1,6 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { MediaFile } from "src/files/files.model";
 import { User } from "src/users/users.model";
-import { Column, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  ForeignKey,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 @Entity()
 export class Post {
@@ -34,4 +41,9 @@ export class Post {
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
+
+  @OneToMany(() => MediaFile, (mediaFile) => mediaFile.post, {
+    cascade: true,
+  })
+  mediaFiles: MediaFile[];
 }

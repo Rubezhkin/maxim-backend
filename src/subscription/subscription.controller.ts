@@ -53,7 +53,7 @@ export class SubscriptionController {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
     await this.subscriptionService.subscribeToUser(authorId, id);
-    return { message: "Подписка успешно оформлена" }; // Пример возвращаемого значения
+    return { message: "Подписка успешно оформлена" };
   }
 
   @ApiOperation({ summary: "Отписаться от пользователя" })
@@ -70,7 +70,7 @@ export class SubscriptionController {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
     await this.subscriptionService.unsubscribeFromUser(authorId, id);
-    return { message: "Отписка успешно оформлена" }; // Пример возвращаемого значения
+    return { message: "Отписка успешно оформлена" };
   }
 
   @ApiOperation({ summary: "Список подписок" })
@@ -96,5 +96,25 @@ export class SubscriptionController {
   async getSubscriberList(@Query("authorId") authorId: number) {
     const subscribers = await this.subscriptionService.getSubscribers(authorId);
     return { subscribers };
+  }
+
+  @ApiOperation({ summary: "Проверка на наличие подписки" })
+  @ApiResponse({
+    status: 200,
+    description: "Выявлена наличие подписки",
+  })
+  @UseGuards(JwtAuthGuard)
+  @Get("isSubscribed")
+  async getIsSubscribed(
+    @Query("authorId") authorId: number,
+    @Req() req: Request,
+  ) {
+    const id = (req as Request & { user?: { id?: number } }).user?.id;
+    if (!id) throw new BadRequestException("User not found on request");
+    const isSubscribed = await this.subscriptionService.getIsSubscribed(
+      authorId,
+      id,
+    );
+    return { isSubscribed };
   }
 }
