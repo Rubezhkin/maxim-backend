@@ -17,7 +17,10 @@ async function start() {
   SwaggerModule.setup("api/docs", app, document);
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.enableCors();
+  app.enableCors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  });
   await app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
