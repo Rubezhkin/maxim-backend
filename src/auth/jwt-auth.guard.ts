@@ -28,6 +28,11 @@ export class JwtAuthGuard implements CanActivate {
         });
       }
       const user = this.tokenService.validateAccessToken(token);
+      if (!user) {
+        throw new UnauthorizedException({
+          message: "Пользователь не авторизован!",
+        });
+      }
       req.user = user;
       return true;
     } catch {
