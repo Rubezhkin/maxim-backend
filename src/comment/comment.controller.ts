@@ -18,10 +18,10 @@ import { CreateCommentDto } from "./dto/create-comment.dto";
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @ApiOperation({ summary: "Создать новый пост" })
+  @ApiOperation({ summary: "Создать новый комментарий" })
   @ApiResponse({
     status: 201,
-    description: "Пост успешно создан",
+    description: "комментарий успешно создан",
   })
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -56,6 +56,18 @@ export class CommentController {
   @Get()
   @UseGuards(JwtAuthGuard)
   getComments(@Query("id") postId: number) {
-    return this.commentService.getComment(postId);
+    return this.commentService.getComments(postId);
+  }
+
+  @ApiOperation({ summary: "Получить количество комментариев к посту" })
+  @ApiResponse({
+    status: 200,
+    description: "Получено количество комментариев",
+  })
+  @Get("comments-count")
+  @UseGuards(JwtAuthGuard)
+  async getCommentsCount(@Query("id") postId: number) {
+    const count = await this.commentService.getCommentsCount(postId);
+    return { count };
   }
 }

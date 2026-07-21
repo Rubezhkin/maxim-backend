@@ -15,6 +15,15 @@ export class CommentService {
   async getComment(commentId: number) {
     return this.commentRepository.find({ where: { id: commentId } });
   }
+
+  async getComments(postId: number) {
+    return this.commentRepository.find({ where: { postId } });
+  }
+
+  async getCommentsCount(postId: number) {
+    const count = await this.commentRepository.count({ where: { postId } });
+    return count;
+  }
   async createComment(
     id: number,
     postId: number,
