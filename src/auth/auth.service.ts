@@ -50,7 +50,7 @@ export class AuthService {
     }
     const user = await this.userService.findOne(userData.id);
     if (user) {
-      const tokens = this.saveToken(user);
+      const tokens = await this.saveToken(user);
       return tokens;
     }
   }

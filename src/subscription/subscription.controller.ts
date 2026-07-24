@@ -83,7 +83,7 @@ export class SubscriptionController {
   async getSubscriptionList(@Query("subscriberId") subscriberId: number) {
     const subscriptions =
       await this.subscriptionService.getSubscriptions(subscriberId);
-    return { subscriptions };
+    return subscriptions;
   }
 
   @ApiOperation({ summary: "Список подписчиков" })
@@ -95,7 +95,7 @@ export class SubscriptionController {
   @Get("subscribers")
   async getSubscriberList(@Query("authorId") authorId: number) {
     const subscribers = await this.subscriptionService.getSubscribers(authorId);
-    return { subscribers };
+    return subscribers;
   }
 
   @ApiOperation({ summary: "Проверка на наличие подписки" })
