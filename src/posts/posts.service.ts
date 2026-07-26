@@ -75,6 +75,8 @@ export class PostsService {
     if (post.authorId !== authorId) {
       throw new BadRequestException("You are not the author of this post");
     }
+    console.log(post);
+    console.log(postDto);
     Object.assign(post, postDto);
     await this.postRepository.save(post);
 
