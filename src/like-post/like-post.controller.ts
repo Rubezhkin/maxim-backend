@@ -35,7 +35,7 @@ export class LikePostController {
   })
   @UseGuards(JwtAuthGuard)
   @Post("like")
-  async likeComment(@Query("postId") postId: number, @Req() req: Request) {
+  async likePost(@Query("postId") postId: number, @Req() req: Request) {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
     await this.likeService.likePost(postId, id);
@@ -49,7 +49,7 @@ export class LikePostController {
   })
   @UseGuards(JwtAuthGuard)
   @Post("unlike")
-  async unlikeComment(@Query("postId") postId: number, @Req() req: Request) {
+  async unlikePost(@Query("postId") postId: number, @Req() req: Request) {
     const id = (req as Request & { user?: { id?: number } }).user?.id;
     if (!id) throw new BadRequestException("User not found on request");
     await this.likeService.unlikePost(postId, id);
