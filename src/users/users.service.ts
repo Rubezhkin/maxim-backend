@@ -49,7 +49,11 @@ export class UsersService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
     Object.assign(user, updateUserDto);
-    return this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+    if (!updatedUser) {
+      throw new HttpException("Ошибка обновления", HttpStatus.BAD_REQUEST);
+    }
+    return this.findOneRequest(updatedUser.id);
   }
 
   async updatePassword(id: number, hashedPassword: string) {

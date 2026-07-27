@@ -76,6 +76,8 @@ export class PostsService {
       throw new BadRequestException("You are not the author of this post");
     }
     Object.assign(post, postDto);
-    return this.postRepository.save(post);
+    await this.postRepository.save(post);
+
+    return this.getPostById(post.id);
   }
 }
